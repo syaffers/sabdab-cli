@@ -1,0 +1,139 @@
+"""Parse and validate SAbDab summary TSV files."""
+
+from __future__ import annotations
+
+import csv
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TextIO
+
+
+class SummaryParseError(Exception):
+    """Raised when summary file parsing fails."""
+
+    pass
+
+
+@dataclass(frozen=True)
+class SAbDabEntry:
+    """Represents a single antibody entry from the SAbDab summary file."""
+
+    pdb: str
+    hchain: str
+    lchain: str
+    model: str
+
+    @property
+    def entry_id(self) -> str:
+        """Unique identifier for this entry."""
+
+        return f"{self.pdb}_{self.hchain}_{self.lchain}_{self.model}"
+
+    @property
+    def has_heavy_chain(self) -> bool:
+        """Check if entry has a heavy chain."""
+
+        return self.hchain != "NA"
+
+    @property
+    def has_light_chain(self) -> bool:
+        """Check if entry has a light chain."""
+
+        return self.lchain != "NA"
+
+    @property
+    def is_paired(self) -> bool:
+        """Check if entry has both heavy and light chains."""
+
+        return self.has_heavy_chain and self.has_light_chain
+
+
+def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
+    """Parse a SAbDab summary TSV file.
+
+    Args:
+        file_path: Path to the tab-separated summary file.
+
+    Returns:
+        List of parsed SAbDab entries.
+
+    Raises:
+        SummaryParseError: If the file format is invalid or required columns are missing.
+        FileNotFoundError: If the file does not exist.
+    """
+
+    if not file_path.exists():
+        raise FileNotFoundError(f"Summary file not found: {file_path}")
+
+    with file_path.open("r", encoding="utf-8") as f:
+        return parse_summary_stream(f)
+
+
+def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
+    """Parse a SAbDab summary from an open file stream.
+
+    Args:
+        stream: Open text stream containing TSV data.
+
+    Returns:
+        List of parsed SAbDab entries.
+
+    Raises:
+        SummaryParseError: If the file format is invalid or required columns are missing.
+    """
+
+    reader = csv.DictReader(stream, delimiter="\t")
+
+    if reader.fieldnames is None:
+        raise SummaryParseError("Summary file is empty or missing header")
+
+    # Validate required columns exist
+    required_columns = {"pdb", "Hchain", "Lchain", "model"}
+    fieldnames_set = set(reader.fieldnames)
+
+    missing_columns = required_columns - fieldnames_set
+    if missing_columns:
+        raise SummaryParseError(
+            f"Summary file missing required columns: {', '.join(sorted(missing_columns))}"
+        )
+
+    entries: list[SAbDabEntry] = []
+    # Line 1 is header, data starts at line 2.
+    for line_num, row in enumerate(reader, start=2):
+        try:
+            entry = SAbDabEntry(
+                pdb=row["pdb"].strip(),
+                hchain=row["Hchain"].strip(),
+                lchain=row["Lchain"].strip(),
+                model=row["model"].strip(),
+            )
+            entries.append(entry)
+        except KeyError as e:
+            raise SummaryParseError(f"Missing column {e} on line {line_num}") from e
+        except Exception as e:
+            raise SummaryParseError(f"Error parsing line {line_num}: {e}") from e
+
+    if not entries:
+        raise SummaryParseError("Summary file contains no data rows")
+
+    return entries
+
+
+def group_entries_by_pdb(entries: list[SAbDabEntry]) -> dict[str, list[SAbDabEntry]]:
+    """Group entries by their PDB ID.
+
+    Args:
+        entries: List of SAbDab entries.
+
+    Returns:
+        Dictionary mapping PDB ID to list of entries for that PDB.
+    """
+
+    grouped: dict[str, list[SAbDabEntry]] = {}
+
+    for entry in entries:
+        if entry.pdb not in grouped:
+            grouped[entry.pdb] = []
+        grouped[entry.pdb].append(entry)
+
+    return grouped
