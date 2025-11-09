@@ -55,6 +55,7 @@ def build_sequence_vh_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_heavy_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.hchain}_VH.fa"
 
 
@@ -69,6 +70,7 @@ def build_sequence_vl_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_light_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.lchain}_VL.fa"
 
 
@@ -83,6 +85,7 @@ def build_annotation_vh_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_heavy_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.hchain}_VH.ann"
 
 
@@ -97,6 +100,7 @@ def build_annotation_vl_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_light_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.lchain}_VL.ann"
 
 
@@ -111,6 +115,7 @@ def build_abangle_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.is_paired:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/abangle/{entry.pdb}.abangle"
 
 
@@ -125,6 +130,7 @@ def build_imgt_h_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_heavy_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.hchain}_H.imgt"
 
 
@@ -139,4 +145,5 @@ def build_imgt_l_url(entry: SAbDabEntry) -> str | None:
     """
     if not entry.has_light_chain:
         return None
+
     return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.lchain}_L.imgt"

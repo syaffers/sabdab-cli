@@ -51,13 +51,29 @@ class SAbDabEntry:
 def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
     """Parse a SAbDab summary TSV file.
 
-    Args:
-        file_path: Path to the tab-separated summary file.
+    Usage
+    ---
 
-    Returns:
-        List of parsed SAbDab entries.
+    ```
+    >>> entries = parse_summary_file("tests/data/summary.csv")
+    >>> print(entries)
+    [
+        SAbDabEntry(pdb='2w0l', hchain='NA', lchain='A', model='0'),
+        SAbDabEntry(pdb='3fct', hchain='B', lchain='A', model='0'),
+        ...
+    ]
+    ```
 
-    Raises:
+    Args
+    ---
+        `file_path`: Path to the tab-separated summary file.
+
+    Returns
+    ---
+        List of parsed `SAbDabEntry`s.
+
+    Raises
+    ---
         SummaryParseError: If the file format is invalid or required columns are missing.
         FileNotFoundError: If the file does not exist.
     """
