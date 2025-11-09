@@ -16,7 +16,14 @@ class SummaryParseError(Exception):
 
 @dataclass(frozen=True)
 class SAbDabEntry:
-    """Represents a single antibody entry from the SAbDab summary file."""
+    """Represents a single antibody entry from the SAbDab summary file.
+
+    Attributes:
+        - `id`: Alphanumeric Protein Data Bank (PDB) ID for an antibody.
+        - `hchain`: Chain ID for the heavy chain of an antibody.
+        - `lchain`: Chain ID for the light chain of an antibody.
+        - `model`: The model number for the PDB entry.
+    """
 
     pdb: str
     hchain: str
@@ -49,7 +56,9 @@ class SAbDabEntry:
 
 
 def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
-    """Parse a SAbDab summary TSV file.
+    """Parse a SAbDab summary TSV file into list on entries.
+
+    For more information on a `SAbDabEntry`, see the `SAbDabEntry` class documentation.
 
     Usage
     ---
@@ -119,8 +128,8 @@ def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
         try:
             entry = SAbDabEntry(
                 pdb=row["pdb"].strip(),
-                hchain=row["Hchain"].strip(),
-                lchain=row["Lchain"].strip(),
+                hchain=row["Hchain"].strip().upper(),  # Sometimes these are lowercase!
+                lchain=row["Lchain"].strip().upper(),  # Sometimes these are lowercase!
                 model=row["model"].strip(),
             )
             entries.append(entry)
