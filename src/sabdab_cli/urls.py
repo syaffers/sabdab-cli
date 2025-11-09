@@ -8,142 +8,153 @@ from sabdab_cli.summary import SAbDabEntry
 SABDAB_BASE_URL = "https://opig.stats.ox.ac.uk/webapps/abdb"
 
 
-def build_original_pdb_url(entry: SAbDabEntry) -> str:
-    """Build URL for original PDB structure.
+class SAbDabUrlBuilder:
+    """Build URLs for downloading SAbDab data."""
 
-    Args:
-        entry: SAbDab entry.
+    def __init__(self, base_url: str | None = None):
+        """Initialize the URL builder.
 
-    Returns:
-        URL string for downloading the original PDB file.
-    """
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/structure/{entry.pdb}.pdb"
+        Usage
+        ---
+        ```
+        >>> builder = SAbDabUrlBuilder()
+        >>> builder.build_original_pdb_url(entry)
+        'https://opig.stats.ox.ac.uk/webapps/abdb/entries/3fct/structure/3fct.pdb'
+        ```
 
+        Args
+        ---
+            `base_url`: Base URL for SAbDab source data.
+        """
+        self.base_url = base_url or SABDAB_BASE_URL
 
-def build_chothia_pdb_url(entry: SAbDabEntry) -> str:
-    """Build URL for Chothia-renumbered PDB structure.
+    def build_original_pdb_url(self, entry: SAbDabEntry) -> str:
+        """Build URL for original PDB structure.
 
-    Args:
-        entry: SAbDab entry.
+        Args:
+            entry: SAbDab entry.
 
-    Returns:
-        URL string for downloading the Chothia PDB file.
-    """
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/structure/chothia/{entry.pdb}.pdb"
+        Returns:
+            URL string for downloading the original PDB file.
+        """
+        return f"{self.base_url}/entries/{entry.pdb}/structure/{entry.pdb}.pdb"
 
+    def build_chothia_pdb_url(self, entry: SAbDabEntry) -> str:
+        """Build URL for Chothia-renumbered PDB structure.
 
-def build_sequence_raw_url(entry: SAbDabEntry) -> str:
-    """Build URL for raw sequence file.
+        Args:
+            entry: SAbDab entry.
 
-    Args:
-        entry: SAbDab entry.
+        Returns:
+            URL string for downloading the Chothia PDB file.
+        """
+        return f"{self.base_url}/entries/{entry.pdb}/structure/chothia/{entry.pdb}.pdb"
 
-    Returns:
-        URL string for downloading the raw sequence file.
-    """
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/sequences/{entry.pdb}_raw.fa"
+    def build_sequence_raw_url(self, entry: SAbDabEntry) -> str:
+        """Build URL for raw sequence file.
 
+        Args:
+            entry: SAbDab entry.
 
-def build_sequence_vh_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for heavy chain variable region sequence.
+        Returns:
+            URL string for downloading the raw sequence file.
+        """
+        return f"{self.base_url}/entries/{entry.pdb}/sequences/{entry.pdb}_raw.fa"
 
-    Args:
-        entry: SAbDab entry.
+    def build_sequence_vh_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for heavy chain variable region sequence.
 
-    Returns:
-        URL string if entry has heavy chain, None otherwise.
-    """
-    if not entry.has_heavy_chain:
-        return None
+        Args:
+            entry: SAbDab entry.
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.hchain}_VH.fa"
+        Returns:
+            URL string if entry has heavy chain, None otherwise.
+        """
+        if not entry.has_heavy_chain:
+            return None
 
+        return f"{self.base_url}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.hchain}_VH.fa"
 
-def build_sequence_vl_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for light chain variable region sequence.
+    def build_sequence_vl_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for light chain variable region sequence.
 
-    Args:
-        entry: SAbDab entry.
+        Args:
+            entry: SAbDab entry.
 
-    Returns:
-        URL string if entry has light chain, None otherwise.
-    """
-    if not entry.has_light_chain:
-        return None
+        Returns:
+            URL string if entry has light chain, None otherwise.
+        """
+        if not entry.has_light_chain:
+            return None
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.lchain}_VL.fa"
+        return f"{self.base_url}/entries/{entry.pdb}/sequences/{entry.pdb}_{entry.lchain}_VL.fa"
 
+    def build_annotation_vh_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for heavy chain annotation file.
 
-def build_annotation_vh_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for heavy chain annotation file.
+        Args:
+            entry: SAbDab entry.
 
-    Args:
-        entry: SAbDab entry.
+        Returns:
+            URL string if entry has heavy chain, None otherwise.
+        """
+        if not entry.has_heavy_chain:
+            return None
 
-    Returns:
-        URL string if entry has heavy chain, None otherwise.
-    """
-    if not entry.has_heavy_chain:
-        return None
+        return f"{self.base_url}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.hchain}_VH.ann"
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.hchain}_VH.ann"
+    def build_annotation_vl_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for light chain annotation file.
 
+        Args:
+            entry: SAbDab entry.
 
-def build_annotation_vl_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for light chain annotation file.
+        Returns:
+            URL string if entry has light chain, None otherwise.
+        """
+        if not entry.has_light_chain:
+            return None
 
-    Args:
-        entry: SAbDab entry.
+        return f"{self.base_url}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.lchain}_VL.ann"
 
-    Returns:
-        URL string if entry has light chain, None otherwise.
-    """
-    if not entry.has_light_chain:
-        return None
+    def build_abangle_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for AbAngle orientation angles file.
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/annotation/{entry.pdb}_{entry.lchain}_VL.ann"
+        Args:
+            entry: SAbDab entry.
 
+        Returns:
+            URL string if entry is paired, None otherwise.
+        """
+        if not entry.is_paired:
+            return None
 
-def build_abangle_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for AbAngle orientation angles file.
+        return f"{self.base_url}/entries/{entry.pdb}/abangle/{entry.pdb}.abangle"
 
-    Args:
-        entry: SAbDab entry.
+    def build_imgt_h_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for IMGT heavy chain annotation file.
 
-    Returns:
-        URL string if entry is paired, None otherwise.
-    """
-    if not entry.is_paired:
-        return None
+        Args:
+            entry: SAbDab entry.
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/abangle/{entry.pdb}.abangle"
+        Returns:
+            URL string if entry has heavy chain, None otherwise.
+        """
+        if not entry.has_heavy_chain:
+            return None
 
+        return f"{self.base_url}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.hchain}_H.imgt"
 
-def build_imgt_h_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for IMGT heavy chain annotation file.
+    def build_imgt_l_url(self, entry: SAbDabEntry) -> str | None:
+        """Build URL for IMGT light chain annotation file.
 
-    Args:
-        entry: SAbDab entry.
+        Args:
+            entry: SAbDab entry.
 
-    Returns:
-        URL string if entry has heavy chain, None otherwise.
-    """
-    if not entry.has_heavy_chain:
-        return None
+        Returns:
+            URL string if entry has light chain, None otherwise.
+        """
+        if not entry.has_light_chain:
+            return None
 
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.hchain}_H.imgt"
-
-
-def build_imgt_l_url(entry: SAbDabEntry) -> str | None:
-    """Build URL for IMGT light chain annotation file.
-
-    Args:
-        entry: SAbDab entry.
-
-    Returns:
-        URL string if entry has light chain, None otherwise.
-    """
-    if not entry.has_light_chain:
-        return None
-
-    return f"{SABDAB_BASE_URL}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.lchain}_L.imgt"
+        return f"{self.base_url}/entries/{entry.pdb}/imgt/{entry.pdb}_{entry.lchain}_L.imgt"
