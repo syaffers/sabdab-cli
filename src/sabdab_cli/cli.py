@@ -16,7 +16,7 @@ app = typer.Typer(
 )
 
 
-@app.command()
+@app.command(no_args_is_help=True)
 def download(
     summary_file: Path = typer.Option(
         ...,
