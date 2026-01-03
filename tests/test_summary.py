@@ -26,47 +26,29 @@ class TestSAbDabEntry:
 
         assert entry.entry_id == "3fct_B_A_0"
 
-    def test_has_heavy_chain_true(self) -> None:
-        """Test has_heavy_chain when chain exists."""
-        entry = SAbDabEntry(pdb="3fct", hchain="B", lchain="A", model="0")
+    @pytest.mark.parametrize("hchain, expected_has_heavy_chain", [("B", True), ("NA", False)])
+    def test_has_heavy_chain(self, hchain: str, expected_has_heavy_chain: bool) -> None:
+        """Test has_heavy_chain property."""
+        entry = SAbDabEntry(pdb="3fct", hchain=hchain, lchain="A", model="0")
 
-        assert entry.has_heavy_chain is True
+        assert entry.has_heavy_chain is expected_has_heavy_chain
 
-    def test_has_heavy_chain_false(self) -> None:
-        """Test has_heavy_chain when chain is NA."""
-        entry = SAbDabEntry(pdb="2w0l", hchain="NA", lchain="A", model="0")
+    @pytest.mark.parametrize("lchain, expected_has_light_chain", [("A", True), ("NA", False)])
+    def test_has_light_chain(self, lchain: str, expected_has_light_chain: bool) -> None:
+        """Test has_light_chain property."""
+        entry = SAbDabEntry(pdb="3fct", hchain="B", lchain=lchain, model="0")
 
-        assert entry.has_heavy_chain is False
+        assert entry.has_light_chain is expected_has_light_chain
 
-    def test_has_light_chain_true(self) -> None:
-        """Test has_light_chain when chain exists."""
-        entry = SAbDabEntry(pdb="3fct", hchain="B", lchain="A", model="0")
+    @pytest.mark.parametrize(
+        "hchain, lchain, expected_is_paired",
+        [("B", "A", True), ("NA", "A", False), ("B", "NA", False)],
+    )
+    def test_is_paired(self, hchain: str, lchain: str, expected_is_paired: bool) -> None:
+        """Test is_paired property."""
+        entry = SAbDabEntry(pdb="3fct", hchain=hchain, lchain=lchain, model="0")
 
-        assert entry.has_light_chain is True
-
-    def test_has_light_chain_false(self) -> None:
-        """Test has_light_chain when chain is NA."""
-        entry = SAbDabEntry(pdb="6qpg", hchain="M", lchain="NA", model="0")
-
-        assert entry.has_light_chain is False
-
-    def test_is_paired_true(self) -> None:
-        """Test is_paired when both chains exist."""
-        entry = SAbDabEntry(pdb="3fct", hchain="B", lchain="A", model="0")
-
-        assert entry.is_paired is True
-
-    def test_is_paired_false_no_heavy(self) -> None:
-        """Test is_paired when heavy chain missing."""
-        entry = SAbDabEntry(pdb="2w0l", hchain="NA", lchain="A", model="0")
-
-        assert entry.is_paired is False
-
-    def test_is_paired_false_no_light(self) -> None:
-        """Test is_paired when light chain missing."""
-        entry = SAbDabEntry(pdb="6qpg", hchain="M", lchain="NA", model="0")
-
-        assert entry.is_paired is False
+        assert entry.is_paired is expected_is_paired
 
 
 @pytest.mark.unit
@@ -158,12 +140,14 @@ class TestParseSummaryFile:
     def test_parse_nonexistent_file(self, tmp_path: Path) -> None:
         """Test parsing non-existent file raises FileNotFoundError."""
         test_file = tmp_path / "nonexistent.tsv"
+
         with pytest.raises(FileNotFoundError, match="not found"):
             parse_summary_file(test_file)
 
     def test_parse_test_data_file(self) -> None:
         """Test parsing the actual test data file."""
         test_data = Path(__file__).parent / "data" / "summary.csv"
+
         if test_data.exists():
             entries = parse_summary_file(test_data)
 

@@ -398,7 +398,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
-    { name = "platformdirs" },
     { name = "rich" },
     { name = "tenacity" },
     { name = "typer" },
@@ -416,7 +415,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "platformdirs", specifier = ">=4.5.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.4.0" },
     { name = "pyrefly", marker = "extra == 'dev'", specifier = ">=0.40.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
