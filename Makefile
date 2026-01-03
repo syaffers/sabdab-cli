@@ -3,8 +3,8 @@
 test: test-unit
 
 test-unit:
-	uv run --extra dev pytest -m unit
+	uv run --dev pytest -m unit
 
 lint:
-	uv run --extra dev ruff check src
-	uv run --extra dev pyrefly check src
+	uv run --dev ruff check src
+	uv run --dev pyrefly check src
