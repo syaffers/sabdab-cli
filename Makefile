@@ -2,6 +2,12 @@
 
 test: test-unit
 
+clean:
+	rm -rf dist
+
+build: clean
+	uv build
+
 test-unit:
 	uv run --dev pytest -m unit
 
