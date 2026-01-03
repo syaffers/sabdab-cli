@@ -1,7 +1,7 @@
 [project]
 name = "sabdab-cli"
 version = "0.1.0"
-description = "Add your description here"
+description = "A CLI for downloading SAbDab data."
 readme = "README.md"
 authors = [
     { name = "Syafiq Kamarul Azman", email = "syafiqkamarulazman@gmail.com" }

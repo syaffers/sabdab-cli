@@ -5,6 +5,7 @@ from pathlib import Path
 
 import typer
 
+from sabdab_cli import __version__
 from sabdab_cli.downloader import DownloadOptions, run_download
 from sabdab_cli.downloader.runner import run_download_async
 
@@ -102,6 +103,14 @@ def download(
         exit_code = asyncio.run(run_download_async(options))
 
     raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def version():
+    """
+    Display the current version of sabdab-cli.
+    """
+    typer.echo(f"SAbDab CLI version {__version__}")
 
 
 if __name__ == "__main__":
