@@ -28,7 +28,8 @@ requires = ["uv_build>=0.8.4,<0.9.0"]
 build-backend = "uv_build"
 
 [project.scripts]
-sabdab = "sabdab_cli.cli:app"
+sabdab-cli = "sabdab_cli.cli:app"
+sabdabc = "sabdab_cli.cli:app"
 
 [tool.ruff]
 target-version = "py310"
