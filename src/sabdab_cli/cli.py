@@ -63,7 +63,7 @@ def download(
         30.0, "--timeout", min=1.0, help="HTTP timeout (seconds) per request."
     ),
     http2: bool = typer.Option(
-        True, "--http2/--no-http2", help="Enable HTTP/2 for downloads when supported."
+        False, "--http2/--no-http2", help="Enable HTTP/2 for downloads when supported."
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show verbose error details."),
 ) -> None:

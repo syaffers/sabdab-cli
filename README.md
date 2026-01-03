@@ -19,18 +19,29 @@ This tool is an alternative to the [SAbDab downloader script](https://opig.stats
 ## Installation
 
 With `uv` (recommended):
+
 ```bash
 uv add sabdab-cli
 ```
 
 With `pip`:
+
 ```bash
 pip install sabdab-cli
 ```
 
 Or run directly without installing:
+
 ```bash
 uvx sabdab-cli download -s summary.csv -o ./data --original-pdb
+```
+
+### HTTP/2 Support (Optional)
+
+For potentially faster downloads using HTTP/2, install with the `http2` extra:
+
+```bash
+uv add "sabdab-cli[http2]"
 ```
 
 ## Usage
@@ -75,6 +86,9 @@ sabdabc download -s summary.csv -o ./data --original-pdb --threads 20
 
 # Synchronous mode (single thread)
 sabdabc download -s summary.csv -o ./data --original-pdb --threads 1
+
+# Enable HTTP/2 for faster downloads (requires sabdab-cli[http2])
+sabdabc download -s summary.csv -o ./data --original-pdb --http2
 ```
 
 ## License

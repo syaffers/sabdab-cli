@@ -150,6 +150,10 @@ def run_download(options: DownloadOptions) -> int:
         console.print(f"[bold red]Error:[/bold red] {e}")
         return 1
     except Exception as e:
+        if "h2" in str(e) and "not installed" in str(e):
+            console.print("[bold red]Error:[/bold red] HTTP/2 support is not installed.")
+            console.print("Please install it with: [bold]pip install 'sabdab-cli[http2]'[/bold]")
+            return 1
         if options.verbose:
             console.print_exception(show_locals=True)
         else:
@@ -347,6 +351,10 @@ async def run_download_async(options: DownloadOptions) -> int:
         console.print(f"[bold red]Error:[/bold red] {e}")
         return 1
     except Exception as e:
+        if "h2" in str(e) and "not installed" in str(e):
+            console.print("[bold red]Error:[/bold red] HTTP/2 support is not installed.")
+            console.print("Please install it with: [bold]pip install 'sabdab-cli[http2]'[/bold]")
+            return 1
         if options.verbose:
             console.print_exception(show_locals=True)
         else:

@@ -266,7 +266,7 @@ class TestRunDownloadAsync:
             threads=2,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 
@@ -294,7 +294,7 @@ class TestRunDownloadAsync:
             threads=2,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 

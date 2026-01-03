@@ -30,7 +30,7 @@ class TestRunDownload:
             threads=None,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 
@@ -56,7 +56,7 @@ class TestRunDownload:
             threads=None,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 
@@ -84,7 +84,7 @@ class TestRunDownload:
             threads=None,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 
@@ -110,7 +110,7 @@ class TestRunDownload:
             threads=None,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=True,
         )
 
@@ -136,7 +136,7 @@ class TestRunDownload:
             threads=None,
             retries=3,
             timeout=30.0,
-            http2=True,
+            http2=False,
             verbose=False,
         )
 
