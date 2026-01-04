@@ -25,7 +25,7 @@ def download(
         file_okay=True,
         dir_okay=False,
         readable=True,
-        help="Tab-separated summary file from SAbDab (must include columns: pdb, Hchain, Lchain, model).",
+        help="Summary file from SAbDab (must include columns: pdb, Hchain, Lchain, model).",
     ),
     output_path: Path = typer.Option(
         ...,

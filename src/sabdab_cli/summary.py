@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import itertools
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO
@@ -56,7 +57,7 @@ class SAbDabEntry:
 
 
 def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
-    """Parse a SAbDab summary TSV file into list on entries.
+    """Parse a SAbDab summary file into list of entries.
 
     For more information on a `SAbDabEntry`, see the `SAbDabEntry` class documentation.
 
@@ -75,7 +76,7 @@ def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
 
     Args
     ---
-        `file_path`: Path to the tab-separated summary file.
+        `file_path`: Path to the summary file.
 
     Returns
     ---
@@ -97,8 +98,10 @@ def parse_summary_file(file_path: Path) -> list[SAbDabEntry]:
 def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
     """Parse a SAbDab summary from an open file stream.
 
+    Supports both tab-separated and comma-separated formats.
+
     Args:
-        stream: Open text stream containing TSV data.
+        stream: Open text stream containing summary file data.
 
     Returns:
         List of parsed SAbDab entries.
@@ -107,7 +110,16 @@ def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
         SummaryParseError: If the file format is invalid or required columns are missing.
     """
 
-    reader = csv.DictReader(stream, delimiter="\t")
+    # Peek at first line to detect delimiter
+    header = stream.readline()
+    if not header:
+        raise SummaryParseError("Summary file is empty")
+
+    # SAbDab TSV usually uses tabs. If no tab is found, fallback to comma.
+    delimiter = "\t" if "\t" in header else ","
+
+    # Re-assemble the stream by chaining the header back
+    reader = csv.DictReader(itertools.chain([header], stream), delimiter=delimiter)
 
     if reader.fieldnames is None:
         raise SummaryParseError("Summary file is empty or missing header")

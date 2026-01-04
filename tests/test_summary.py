@@ -68,6 +68,19 @@ class TestParseSummaryStream:
         assert entries[0].model == "0"
         assert entries[1].pdb == "3dgg"
 
+    def test_parse_valid_csv_stream(self) -> None:
+        """Test parsing a valid CSV stream (comma-separated)."""
+        content = "pdb,Hchain,Lchain,model\n3fct,B,A,0\n3dgg,D,C,0\n"
+        stream = StringIO(content)
+        entries = parse_summary_stream(stream)
+
+        assert len(entries) == 2
+        assert entries[0].pdb == "3fct"
+        assert entries[0].hchain == "B"
+        assert entries[0].lchain == "A"
+        assert entries[0].model == "0"
+        assert entries[1].pdb == "3dgg"
+
     def test_parse_empty_file(self) -> None:
         """Test parsing an empty file raises error."""
         stream = StringIO("")

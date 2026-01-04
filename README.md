@@ -74,7 +74,9 @@ sabdab-cli download \
 
 ### Summary File Format
 
-The `--summary-file` (or `-s`) argument should be a TSV or CSV file containing at least the following columns: `pdb`, `Hchain`, `Lchain`, and `model`. See the test [summary file](tests/data/summary.csv) for an example.
+The `--summary-file` (or `-s`) argument should be a tab-separated or comma-separated file containing at least the following columns: `pdb`, `Hchain`, `Lchain`, and `model`. The CLI automatically detects the delimiter based on the file content.
+
+See the test [summary file](tests/data/summary.tsv) for an example.
 
 ### Performance Tuning
 
