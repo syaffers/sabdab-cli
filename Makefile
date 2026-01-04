@@ -2,20 +2,20 @@
 
 
 clean:
-	rm -rf dist
+	@rm -rf dist
 
 build: clean
-	uv build
+	@uv build
 
 test:
-	uv run --dev pytest
+	@uv run --dev pytest
 
 test-unit:
-	uv run --dev pytest -m unit
+	@uv run --dev pytest -m unit
 
 test-asyncio:
-	uv run --dev pytest -m asyncio
+	@uv run --dev pytest -m asyncio
 
 lint:
-	uv run --dev ruff check src
-	uv run --dev pyrefly check src
+	@uv run --dev ruff check src
+	@uv run --dev pyrefly check src
