@@ -5,9 +5,11 @@
 [![License: MIT](https://img.shields.io/github/license/syaffers/sabdab-cli.svg)](https://github.com/syaffers/sabdab-cli/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-A fast, multithreaded CLI for downloading data from [SAbDab](https://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/) (the Structural Antibody Database).
+A fast, multithreaded CLI for downloading data from [SAbDab](https://opig.stats.ox.ac.uk/webapps/newsabdab/sabdab/) (the Structural Antibody Database). This tool is an alternative to the [SAbDab downloader script](https://opig.stats.ox.ac.uk/webapps/sabdab-sabpred/sabdab/downloads/sabdab_downloader.py).
 
-This tool is an alternative to the [SAbDab downloader script](https://opig.stats.ox.ac.uk/webapps/sabdab-sabpred/sabdab/downloads/sabdab_downloader.py).
+Here is `sabdab-cli` in action:
+
+![Image of progress bars triggered by a download command](docs/progress.png)
 
 ## Highlights
 

@@ -6,7 +6,16 @@ import asyncio
 
 import httpx
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TransferSpeedColumn,
+)
+from rich.text import Text
 
 from sabdab_cli.downloader.core import (
     DownloadOptions,
@@ -26,6 +35,26 @@ from sabdab_cli.urls import SAbDabUrlBuilder
 from sabdab_cli.utils import ensure_directory, get_concurrency_limit
 
 console = Console()
+
+
+class SmartDownloadColumn(DownloadColumn):
+    """Download column that shows file count for overall task."""
+
+    def render(self, task):
+        if task.fields.get("is_overall"):
+            return Text(
+                f"({int(task.completed)}/{int(task.total)} files)", style="progress.download"
+            )
+        return Text(" ") + super().render(task)
+
+
+class SmartTransferSpeedColumn(TransferSpeedColumn):
+    """Transfer speed column that is hidden for overall task."""
+
+    def render(self, task):
+        if task.fields.get("is_overall"):
+            return Text("")
+        return Text(" • ") + super().render(task)
 
 
 async def run_download(options: DownloadOptions) -> int:
@@ -81,12 +110,16 @@ async def run_download(options: DownloadOptions) -> int:
 
             with Progress(
                 SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
+                TextColumn("[progress.description]{task.description}", justify="left"),
+                BarColumn(bar_width=None),
                 TaskProgressColumn(),
+                SmartDownloadColumn(),
+                SmartTransferSpeedColumn(),
                 console=console,
             ) as progress:
-                progress_task = progress.add_task("[cyan]Downloading...", total=total_files)
+                overall_task = progress.add_task(
+                    "[bold cyan]Total Progress", total=total_files, is_overall=True
+                )
 
                 # Collect all download tasks
                 all_tasks = []
@@ -104,7 +137,7 @@ async def run_download(options: DownloadOptions) -> int:
                                 options.retries,
                                 stats,
                                 progress,
-                                progress_task,
+                                overall_task,
                                 semaphore,
                             )
                         )
@@ -121,7 +154,7 @@ async def run_download(options: DownloadOptions) -> int:
                                     options.retries,
                                     stats,
                                     progress,
-                                    progress_task,
+                                    overall_task,
                                     semaphore,
                                 )
                             )
@@ -136,7 +169,7 @@ async def run_download(options: DownloadOptions) -> int:
                                     options.retries,
                                     stats,
                                     progress,
-                                    progress_task,
+                                    overall_task,
                                     semaphore,
                                 )
                             )
@@ -151,7 +184,7 @@ async def run_download(options: DownloadOptions) -> int:
                                     options.retries,
                                     stats,
                                     progress,
-                                    progress_task,
+                                    overall_task,
                                     semaphore,
                                 )
                             )
@@ -169,7 +202,7 @@ async def run_download(options: DownloadOptions) -> int:
                                     options.retries,
                                     stats,
                                     progress,
-                                    progress_task,
+                                    overall_task,
                                     semaphore,
                                 )
                             )

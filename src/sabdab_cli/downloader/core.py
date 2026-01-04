@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
+from rich.progress import Progress, TaskID
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -64,6 +65,8 @@ async def download_file(
     client: httpx.AsyncClient,
     max_retries: int,
     semaphore: asyncio.Semaphore,
+    progress: Progress | None = None,
+    task_id: TaskID | None = None,
 ) -> tuple[bool, str | None]:
     """Download a file from a URL to a destination path.
 
@@ -73,6 +76,8 @@ async def download_file(
         client: httpx.AsyncClient instance to use.
         max_retries: Maximum number of retry attempts.
         semaphore: Semaphore to limit concurrent downloads.
+        progress: Rich progress instance.
+        task_id: Rich progress task ID.
 
     Returns:
         Tuple of (success: bool, error_message: str | None).
@@ -80,7 +85,6 @@ async def download_file(
     if dest.exists():
         return True, None
 
-    # Create a retry decorator for transient errors.
     @retry(
         retry=retry_if_exception_type(
             (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError)
@@ -89,21 +93,29 @@ async def download_file(
         wait=wait_exponential(multiplier=1, min=1, max=10),
         reraise=True,
     )
-    async def _fetch() -> bytes:
-        response = await client.get(url)
-        response.raise_for_status()
-        return response.content
+    async def _fetch():
+        async with client.stream("GET", url) as response:
+            response.raise_for_status()
+
+            total = int(response.headers.get("Content-Length", 0))
+            if progress and task_id:
+                progress.update(task_id, total=total, visible=True)
+
+            ensure_directory(dest.parent)
+            with temp_dest.open("wb") as f:
+                async for chunk in response.aiter_bytes():
+                    f.write(chunk)
+                    if progress and task_id:
+                        progress.advance(task_id, len(chunk))
 
     temp_dest = dest.with_suffix(dest.suffix + ".tmp")
 
     try:
         async with semaphore:
             # Download to temporary file for atomic write.
-            content = await _fetch()
+            await _fetch()
 
-            # Atomic write: download to temp, then rename.
-            ensure_directory(dest.parent)
-            temp_dest.write_bytes(content)
+            # Atomic write: rename temp file to dest.
             temp_dest.rename(dest)
 
         return True, None
@@ -126,8 +138,8 @@ async def execute_download_task(
     client: httpx.AsyncClient,
     max_retries: int,
     stats: DownloadStats,
-    progress,
-    progress_task,
+    progress: Progress,
+    overall_progress_task: TaskID,
     semaphore: asyncio.Semaphore,
 ) -> None:
     """Execute a single download task and update statistics.
@@ -138,20 +150,35 @@ async def execute_download_task(
         max_retries: Maximum number of retry attempts.
         stats: Statistics object to update.
         progress: Rich progress instance.
-        progress_task: Progress task ID.
+        overall_progress_task: Overall progress task ID.
         semaphore: Semaphore to limit concurrent downloads.
     """
-    progress.update(progress_task, description=f"[cyan]Downloading {task.dest.name}...")
-
     existed = task.dest.exists()
-    success, error = await download_file(task.url, task.dest, client, max_retries, semaphore)
 
     if existed:
         stats.skipped += 1
-    elif success:
-        stats.downloaded += 1
-    else:
-        stats.failed += 1
-        stats.errors.append(f"{task.dest.name}: {error}")
+        progress.advance(overall_progress_task)
+        return
 
-    progress.advance(progress_task)
+    # Add a new progress task for this specific file.
+    # It starts as invisible until we know the total size or start downloading.
+    task_id = progress.add_task(
+        f"[cyan]Downloading {task.dest.name}...",
+        total=None,
+        visible=False,
+    )
+
+    try:
+        success, error = await download_file(
+            task.url, task.dest, client, max_retries, semaphore, progress, task_id
+        )
+
+        if success:
+            stats.downloaded += 1
+        else:
+            stats.failed += 1
+            stats.errors.append(f"{task.dest.name}: {error}")
+    finally:
+        # Remove the individual task from the progress display and advance overall progress.
+        progress.remove_task(task_id)
+        progress.advance(overall_progress_task)
