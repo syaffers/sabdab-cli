@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 
 import httpx
 from rich.console import Console
@@ -12,7 +11,6 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn
 from sabdab_cli.downloader.core import (
     DownloadOptions,
     DownloadStats,
-    ensure_directory,
     execute_download_task,
 )
 from sabdab_cli.downloader.tasks import (
@@ -25,26 +23,9 @@ from sabdab_cli.downloader.tasks import (
 )
 from sabdab_cli.summary import SummaryParseError, group_entries_by_pdb, parse_summary_file
 from sabdab_cli.urls import SAbDabUrlBuilder
+from sabdab_cli.utils import ensure_directory, get_concurrency_limit
 
 console = Console()
-
-
-def _get_concurrency_limit(threads: int | None) -> int:
-    """Determine the concurrency limit based on user input or system defaults.
-
-    Args:
-        threads: User-specified thread count, or None for auto-detection.
-
-    Returns:
-        Number of concurrent downloads to allow.
-    """
-    if threads is not None:
-        return threads
-
-    # Auto-detect based on CPU count with reasonable limits
-    cpu_count = os.cpu_count() or 1
-    # Use 2x CPU count but cap at 20 for safety
-    return min(cpu_count * 2, 20)
 
 
 async def run_download(options: DownloadOptions) -> int:
@@ -74,7 +55,7 @@ async def run_download(options: DownloadOptions) -> int:
         ensure_directory(options.output_path)
 
         # Determine concurrency limit
-        concurrency_limit = _get_concurrency_limit(options.threads)
+        concurrency_limit = get_concurrency_limit(options.threads)
         semaphore = asyncio.Semaphore(concurrency_limit)
 
         console.print(f"[dim]Using {concurrency_limit} concurrent downloads[/dim]\n")

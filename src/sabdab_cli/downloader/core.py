@@ -14,6 +14,8 @@ from tenacity import (
     wait_exponential,
 )
 
+from sabdab_cli.utils import ensure_directory
+
 
 @dataclass(frozen=True)
 class DownloadOptions:
@@ -54,15 +56,6 @@ class DownloadTask:
 
     url: str
     dest: Path
-
-
-def ensure_directory(path: Path) -> None:
-    """Ensure a directory exists, creating it if necessary.
-
-    Args:
-        path: Path to the directory to create.
-    """
-    path.mkdir(parents=True, exist_ok=True)
 
 
 async def download_file(

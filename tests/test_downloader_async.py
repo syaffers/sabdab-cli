@@ -16,7 +16,8 @@ from sabdab_cli.downloader.core import (
     download_file,
     execute_download_task,
 )
-from sabdab_cli.downloader.runner import _get_concurrency_limit, run_download
+from sabdab_cli.downloader.runner import run_download
+from sabdab_cli.utils import get_concurrency_limit
 
 
 class TestGetConcurrencyLimit:
@@ -24,15 +25,15 @@ class TestGetConcurrencyLimit:
 
     def test_returns_user_specified_threads(self):
         """Should return user-specified thread count."""
-        assert _get_concurrency_limit(5) == 5
-        assert _get_concurrency_limit(1) == 1
-        assert _get_concurrency_limit(50) == 50
+        assert get_concurrency_limit(5) == 5
+        assert get_concurrency_limit(1) == 1
+        assert get_concurrency_limit(50) == 50
 
     def test_auto_detect_returns_reasonable_limit(self):
         """Should auto-detect and return reasonable concurrency limit."""
-        limit = _get_concurrency_limit(None)
+        limit = get_concurrency_limit(None)
         assert isinstance(limit, int)
-        # Assuming os.cpu_count() returns something, or defaults to 4
+        # Assuming os.cpu_count() returns something, or defaults to 1
         # limit should be min(cpu*2, 20)
         assert 1 <= limit <= 20
 
