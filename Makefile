@@ -1,10 +1,13 @@
 .PHONY: lint test
 
 
-clean:
+clean-build:
 	@rm -rf dist
 
-build: clean
+clean: clean-build
+	@rm -rf output
+
+build: clean-build
 	@uv build
 
 test:
