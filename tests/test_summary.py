@@ -85,7 +85,7 @@ class TestParseSummaryStream:
         """Test parsing an empty file raises error."""
         stream = StringIO("")
 
-        with pytest.raises(SummaryParseError, match="empty or missing header"):
+        with pytest.raises(SummaryParseError, match="first line is empty"):
             parse_summary_stream(stream)
 
     def test_parse_header_only(self) -> None:
@@ -94,6 +94,14 @@ class TestParseSummaryStream:
         stream = StringIO(content)
 
         with pytest.raises(SummaryParseError, match="no data rows"):
+            parse_summary_stream(stream)
+
+    def test_parse_invalid_delimiter(self) -> None:
+        """Test parsing file with invalid delimiter raises error."""
+        content = "pdb Hchain Lchain model\n3fct B A 0\n"
+        stream = StringIO(content)
+
+        with pytest.raises(SummaryParseError, match="Assumed delimiter"):
             parse_summary_stream(stream)
 
     def test_parse_missing_required_column(self) -> None:

@@ -113,7 +113,7 @@ def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
     # Peek at first line to detect delimiter
     header = stream.readline()
     if not header:
-        raise SummaryParseError("Summary file is empty")
+        raise SummaryParseError("Summary file's first line is empty")
 
     # SAbDab TSV usually uses tabs. If no tab is found, fallback to comma.
     delimiter = "\t" if "\t" in header else ","
@@ -131,7 +131,9 @@ def parse_summary_stream(stream: TextIO) -> list[SAbDabEntry]:
     missing_columns = required_columns - fieldnames_set
     if missing_columns:
         raise SummaryParseError(
-            f"Summary file missing required columns: {', '.join(sorted(missing_columns))}"
+            f"Summary file missing required columns: "
+            f"{', '.join(sorted(missing_columns))}. "
+            f"Assumed delimiter: {delimiter!r}"
         )
 
     entries: list[SAbDabEntry] = []
