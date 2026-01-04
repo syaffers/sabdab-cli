@@ -101,27 +101,17 @@ fi
 echo "Committing version bump and release notes..."
 run_cmd uv lock
 run_cmd git add pyproject.toml uv.lock
-if [ ! -f RELEASE_NOTES.md ] && [ "$DRY_RUN" != true ]; then
-    # This shouldn't happen if not dry run, but just in case
-    :
-else
-    # Only add if it exists or in dry run (where we simulate its existence)
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] git add RELEASE_NOTES.md"
-    else
-        git add RELEASE_NOTES.md
-    fi
-fi
-run_cmd git commit -m "chore: release $VERSION"
+run_cmd git commit -m "chore: release v$VERSION"
 
-echo "Creating tag $VERSION..."
-run_cmd git tag "$VERSION"
+echo "Creating tag v$VERSION..."
+run_cmd git tag "v$VERSION"
+run_cmd git push --tags -u origin
 
 echo "Pushing to origin..."
 run_cmd git push origin main
 
 if [ "$DRY_RUN" = true ]; then
-    echo "Dry run of release $VERSION complete!"
+    echo "Dry run of release v$VERSION complete!"
 else
-    echo "Release $VERSION complete!"
+    echo "Release v$VERSION complete!"
 fi

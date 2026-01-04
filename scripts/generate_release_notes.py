@@ -73,8 +73,7 @@ def parse_commits(commits):
 def generate_release_notes(version):
     tag = get_latest_tag()
     commits = get_commits_since(tag)
-    # Reversed chronological order as requested (commits are oldest to newest from git log --reverse)
-    # So we want them newest to oldest
+    # Reverse chronological order
     commits.reverse()
 
     categories = parse_commits(commits)
@@ -92,10 +91,10 @@ def generate_release_notes(version):
         "New features",
         "Bug fixes",
         "Refactors",
-        "Chores",
         "Documentation",
         "Tests",
         "Performance",
+        "Chores",
         "Misc",
     ]
 
