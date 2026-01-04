@@ -37,6 +37,7 @@ Issues = "https://github.com/syaffers/sabdab-cli/issues"
 
 [dependency-groups]
 dev = [
+    "gitpython>=3.1.46",
     "pre-commit>=4.4.0",
     "pyrefly>=0.40.1",
     "pytest-asyncio>=1.2.0",
