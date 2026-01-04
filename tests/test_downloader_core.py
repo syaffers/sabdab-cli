@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
-from unittest.mock import MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import httpx
 import pytest
@@ -20,9 +21,9 @@ from conftest import DUMMY_BASE_URL
 
 
 @pytest.fixture
-def mock_http_client() -> MagicMock:
-    """Create a mock httpx.Client."""
-    return MagicMock(spec=httpx.Client)
+def mock_async_client() -> AsyncMock:
+    """Create a mock httpx.AsyncClient."""
+    return AsyncMock(spec=httpx.AsyncClient)
 
 
 @pytest.fixture
@@ -186,86 +187,112 @@ class TestEnsureDirectory:
 class TestDownloadFile:
     """Test download_file function."""
 
-    def test_downloads_file_successfully(
-        self, tmp_path: Path, mock_http_client: MagicMock, mock_success_response: MagicMock
+    @pytest.mark.asyncio
+    async def test_downloads_file_successfully(
+        self, tmp_path: Path, mock_async_client: AsyncMock, mock_success_response: MagicMock
     ) -> None:
         """Test successful file download."""
         dest = tmp_path / "test.pdb"
         url = f"{DUMMY_BASE_URL}/test.pdb"
 
-        mock_http_client.get.return_value = mock_success_response
+        mock_async_client.get.return_value = mock_success_response
+        semaphore = asyncio.Semaphore(1)
 
-        success, error = download_file(url, dest, mock_http_client, max_retries=3)
+        success, error = await download_file(
+            url, dest, mock_async_client, max_retries=3, semaphore=semaphore
+        )
 
         assert success is True
         assert error is None
         assert dest.exists()
         assert dest.read_bytes() == mock_success_response.content
-        mock_http_client.get.assert_called_once_with(url)
+        mock_async_client.get.assert_awaited_once_with(url)
 
-    def test_skips_existing_file(self, tmp_path: Path, mock_http_client: MagicMock) -> None:
+    @pytest.mark.asyncio
+    async def test_skips_existing_file(self, tmp_path: Path, mock_async_client: AsyncMock) -> None:
         """Test that existing files are skipped."""
         dest = tmp_path / "existing.pdb"
         dest.write_text("existing content")
         url = f"{DUMMY_BASE_URL}/test.pdb"
+        semaphore = asyncio.Semaphore(1)
 
-        success, error = download_file(url, dest, mock_http_client, max_retries=3)
+        success, error = await download_file(
+            url, dest, mock_async_client, max_retries=3, semaphore=semaphore
+        )
 
         # Client should not be called for existing files
         assert success is True
         assert error is None
-        mock_http_client.get.assert_not_called()
+        mock_async_client.get.assert_not_called()
         assert dest.read_text() == "existing content"
 
-    def test_handles_404_gracefully(self, tmp_path: Path, mock_http_client: MagicMock) -> None:
+    @pytest.mark.asyncio
+    async def test_handles_404_gracefully(
+        self, tmp_path: Path, mock_async_client: AsyncMock
+    ) -> None:
         """Test that 404 errors are handled without raising."""
         dest = tmp_path / "missing.pdb"
         url = f"{DUMMY_BASE_URL}/missing.pdb"
 
-        mock_http_client.get.return_value = create_mock_error_response(404, "Not Found")
+        mock_async_client.get.return_value = create_mock_error_response(404, "Not Found")
+        semaphore = asyncio.Semaphore(1)
 
-        success, error = download_file(url, dest, mock_http_client, max_retries=0)
+        success, error = await download_file(
+            url, dest, mock_async_client, max_retries=0, semaphore=semaphore
+        )
 
         assert success is False
         assert error == "not found (404)"
         assert not dest.exists()
 
-    def test_handles_500_error(self, tmp_path: Path, mock_http_client: MagicMock) -> None:
+    @pytest.mark.asyncio
+    async def test_handles_500_error(self, tmp_path: Path, mock_async_client: AsyncMock) -> None:
         """Test that 500 errors are handled."""
         dest = tmp_path / "error.pdb"
         url = f"{DUMMY_BASE_URL}/error.pdb"
 
-        mock_http_client.get.return_value = create_mock_error_response(500, "Server Error")
+        mock_async_client.get.return_value = create_mock_error_response(500, "Server Error")
+        semaphore = asyncio.Semaphore(1)
 
-        success, error = download_file(url, dest, mock_http_client, max_retries=0)
+        success, error = await download_file(
+            url, dest, mock_async_client, max_retries=0, semaphore=semaphore
+        )
 
         assert success is False
         assert error == "HTTP 500"
         assert not dest.exists()
 
-    def test_handles_network_error(self, tmp_path: Path, mock_http_client: MagicMock) -> None:
+    @pytest.mark.asyncio
+    async def test_handles_network_error(
+        self, tmp_path: Path, mock_async_client: AsyncMock
+    ) -> None:
         """Test that network errors are handled."""
         dest = tmp_path / "network.pdb"
         url = f"{DUMMY_BASE_URL}/network.pdb"
 
-        mock_http_client.get.side_effect = httpx.NetworkError("Connection failed")
+        mock_async_client.get.side_effect = httpx.NetworkError("Connection failed")
+        semaphore = asyncio.Semaphore(1)
 
-        success, error = download_file(url, dest, mock_http_client, max_retries=0)
+        success, error = await download_file(
+            url, dest, mock_async_client, max_retries=0, semaphore=semaphore
+        )
 
         assert success is False
         assert error == "network error"
         assert not dest.exists()
 
-    def test_cleans_up_temp_file_on_failure(
-        self, tmp_path: Path, mock_http_client: MagicMock
+    @pytest.mark.asyncio
+    async def test_cleans_up_temp_file_on_failure(
+        self, tmp_path: Path, mock_async_client: AsyncMock
     ) -> None:
         """Test that temporary files are cleaned up on failure."""
         dest = tmp_path / "cleanup.pdb"
         url = f"{DUMMY_BASE_URL}/cleanup.pdb"
 
-        mock_http_client.get.side_effect = httpx.NetworkError("Connection failed")
+        mock_async_client.get.side_effect = httpx.NetworkError("Connection failed")
+        semaphore = asyncio.Semaphore(1)
 
-        download_file(url, dest, mock_http_client, max_retries=0)
+        await download_file(url, dest, mock_async_client, max_retries=0, semaphore=semaphore)
 
         # Temp file should not exist
         temp_file = dest.with_suffix(dest.suffix + ".tmp")
@@ -276,10 +303,11 @@ class TestDownloadFile:
 class TestExecuteDownloadTask:
     """Test execute_download_task function."""
 
-    def test_successful_download_updates_stats(
+    @pytest.mark.asyncio
+    async def test_successful_download_updates_stats(
         self,
         tmp_path: Path,
-        mock_http_client: MagicMock,
+        mock_async_client: AsyncMock,
         mock_success_response: MagicMock,
         download_stats: DownloadStats,
         mock_progress: tuple[Mock, Mock],
@@ -290,20 +318,24 @@ class TestExecuteDownloadTask:
             dest=tmp_path / "test.pdb",
         )
 
-        mock_http_client.get.return_value = mock_success_response
+        mock_async_client.get.return_value = mock_success_response
         progress, progress_task = mock_progress
+        semaphore = asyncio.Semaphore(1)
 
-        execute_download_task(task, mock_http_client, 3, download_stats, progress, progress_task)
+        await execute_download_task(
+            task, mock_async_client, 3, download_stats, progress, progress_task, semaphore
+        )
 
         assert download_stats.downloaded == 1
         assert download_stats.skipped == 0
         assert download_stats.failed == 0
         assert len(download_stats.errors) == 0
 
-    def test_existing_file_updates_stats(
+    @pytest.mark.asyncio
+    async def test_existing_file_updates_stats(
         self,
         tmp_path: Path,
-        mock_http_client: MagicMock,
+        mock_async_client: AsyncMock,
         download_stats: DownloadStats,
         mock_progress: tuple[Mock, Mock],
     ) -> None:
@@ -313,17 +345,21 @@ class TestExecuteDownloadTask:
 
         task = DownloadTask(url=f"{DUMMY_BASE_URL}/test.pdb", dest=dest)
         progress, progress_task = mock_progress
+        semaphore = asyncio.Semaphore(1)
 
-        execute_download_task(task, mock_http_client, 3, download_stats, progress, progress_task)
+        await execute_download_task(
+            task, mock_async_client, 3, download_stats, progress, progress_task, semaphore
+        )
 
         assert download_stats.downloaded == 0
         assert download_stats.skipped == 1
         assert download_stats.failed == 0
 
-    def test_failed_download_updates_stats(
+    @pytest.mark.asyncio
+    async def test_failed_download_updates_stats(
         self,
         tmp_path: Path,
-        mock_http_client: MagicMock,
+        mock_async_client: AsyncMock,
         download_stats: DownloadStats,
         mock_progress: tuple[Mock, Mock],
     ) -> None:
@@ -333,10 +369,13 @@ class TestExecuteDownloadTask:
             dest=tmp_path / "missing.pdb",
         )
 
-        mock_http_client.get.return_value = create_mock_error_response(404, "Not Found")
+        mock_async_client.get.return_value = create_mock_error_response(404, "Not Found")
         progress, progress_task = mock_progress
+        semaphore = asyncio.Semaphore(1)
 
-        execute_download_task(task, mock_http_client, 0, download_stats, progress, progress_task)
+        await execute_download_task(
+            task, mock_async_client, 0, download_stats, progress, progress_task, semaphore
+        )
 
         assert download_stats.downloaded == 0
         assert download_stats.skipped == 0

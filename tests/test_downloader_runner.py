@@ -13,7 +13,8 @@ from sabdab_cli.downloader import DownloadOptions, run_download
 class TestRunDownload:
     """Test run_download function."""
 
-    def test_missing_summary_file(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_missing_summary_file(self, tmp_path: Path) -> None:
         """Test error handling when summary file is missing."""
         summary_file = tmp_path / "nonexistent.tsv"
         output_path = tmp_path / "output"
@@ -34,11 +35,12 @@ class TestRunDownload:
             verbose=False,
         )
 
-        exit_code = run_download(options)
+        exit_code = await run_download(options)
 
         assert exit_code == 1
 
-    def test_invalid_summary_file_format(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_invalid_summary_file_format(self, tmp_path: Path) -> None:
         """Test error handling for invalid summary file format."""
         summary_file = tmp_path / "invalid.tsv"
         summary_file.write_text("invalid content without proper headers")
@@ -60,11 +62,12 @@ class TestRunDownload:
             verbose=False,
         )
 
-        exit_code = run_download(options)
+        exit_code = await run_download(options)
 
         assert exit_code == 1
 
-    def test_creates_output_directory(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_creates_output_directory(self, tmp_path: Path) -> None:
         """Test that output directory is created."""
         summary_file = tmp_path / "summary.tsv"
         summary_file.write_text("pdb\tHchain\tLchain\tmodel\n1a2b\tH\tL\t0\n")
@@ -88,12 +91,13 @@ class TestRunDownload:
             verbose=False,
         )
 
-        run_download(options)
+        await run_download(options)
 
         assert output_path.exists()
         assert output_path.is_dir()
 
-    def test_verbose_mode(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_verbose_mode(self, tmp_path: Path) -> None:
         """Test that verbose mode doesn't crash on errors."""
         summary_file = tmp_path / "nonexistent.tsv"
         output_path = tmp_path / "output"
@@ -114,11 +118,12 @@ class TestRunDownload:
             verbose=True,
         )
 
-        exit_code = run_download(options)
+        exit_code = await run_download(options)
 
         assert exit_code == 1
 
-    def test_empty_summary_file(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_empty_summary_file(self, tmp_path: Path) -> None:
         """Test handling of empty summary file."""
         summary_file = tmp_path / "empty.tsv"
         summary_file.write_text("pdb\tHchain\tLchain\tmodel\n")
@@ -140,7 +145,7 @@ class TestRunDownload:
             verbose=False,
         )
 
-        exit_code = run_download(options)
+        exit_code = await run_download(options)
 
         # Should fail with empty file (no data rows)
         assert exit_code == 1
@@ -150,7 +155,8 @@ class TestRunDownload:
 class TestRunDownloadIntegration:
     """Integration tests for run_download function."""
 
-    def test_with_real_summary_file(self, tmp_path: Path) -> None:
+    @pytest.mark.asyncio
+    async def test_with_real_summary_file(self, tmp_path: Path) -> None:
         """Test with a real summary file structure."""
         summary_file = tmp_path / "summary.tsv"
         summary_file.write_text(
@@ -175,7 +181,7 @@ class TestRunDownloadIntegration:
             verbose=False,
         )
 
-        exit_code = run_download(options)
+        exit_code = await run_download(options)
 
         # Should succeed even if no downloads were requested
         assert exit_code == 0

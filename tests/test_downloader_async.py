@@ -13,10 +13,10 @@ from sabdab_cli.downloader.core import (
     DownloadOptions,
     DownloadStats,
     DownloadTask,
-    download_file_async,
-    execute_download_task_async,
+    download_file,
+    execute_download_task,
 )
-from sabdab_cli.downloader.runner import _get_concurrency_limit, run_download_async
+from sabdab_cli.downloader.runner import _get_concurrency_limit, run_download
 
 
 class TestGetConcurrencyLimit:
@@ -32,10 +32,12 @@ class TestGetConcurrencyLimit:
         """Should auto-detect and return reasonable concurrency limit."""
         limit = _get_concurrency_limit(None)
         assert isinstance(limit, int)
-        assert 1 <= limit <= 20  # Should be between 1 and 20
+        # Assuming os.cpu_count() returns something, or defaults to 4
+        # limit should be min(cpu*2, 20)
+        assert 1 <= limit <= 20
 
 
-class TestDownloadFileAsync:
+class TestDownloadFile:
     """Test async file download functionality."""
 
     @pytest.mark.asyncio
@@ -56,7 +58,7 @@ class TestDownloadFileAsync:
 
         semaphore = asyncio.Semaphore(5)
 
-        success, error = await download_file_async(
+        success, error = await download_file(
             url, dest, mock_client, max_retries=3, semaphore=semaphore
         )
 
@@ -75,7 +77,7 @@ class TestDownloadFileAsync:
         mock_client = AsyncMock(spec=httpx.AsyncClient)
         semaphore = asyncio.Semaphore(5)
 
-        success, error = await download_file_async(
+        success, error = await download_file(
             url, dest, mock_client, max_retries=3, semaphore=semaphore
         )
 
@@ -101,7 +103,7 @@ class TestDownloadFileAsync:
 
         semaphore = asyncio.Semaphore(5)
 
-        success, error = await download_file_async(
+        success, error = await download_file(
             url, dest, mock_client, max_retries=3, semaphore=semaphore
         )
 
@@ -121,7 +123,7 @@ class TestDownloadFileAsync:
 
         semaphore = asyncio.Semaphore(5)
 
-        success, error = await download_file_async(
+        success, error = await download_file(
             url, dest, mock_client, max_retries=0, semaphore=semaphore
         )
 
@@ -131,7 +133,7 @@ class TestDownloadFileAsync:
         assert not temp_dest.exists()
 
 
-class TestExecuteDownloadTaskAsync:
+class TestExecuteDownloadTask:
     """Test async download task execution."""
 
     @pytest.mark.asyncio
@@ -159,7 +161,7 @@ class TestExecuteDownloadTaskAsync:
         stats = DownloadStats()
         semaphore = asyncio.Semaphore(5)
 
-        await execute_download_task_async(
+        await execute_download_task(
             task,
             mock_client,
             max_retries=3,
@@ -190,7 +192,7 @@ class TestExecuteDownloadTaskAsync:
         stats = DownloadStats()
         semaphore = asyncio.Semaphore(5)
 
-        await execute_download_task_async(
+        await execute_download_task(
             task,
             mock_client,
             max_retries=3,
@@ -227,7 +229,7 @@ class TestExecuteDownloadTaskAsync:
         stats = DownloadStats()
         semaphore = asyncio.Semaphore(5)
 
-        await execute_download_task_async(
+        await execute_download_task(
             task,
             mock_client,
             max_retries=0,
@@ -244,7 +246,7 @@ class TestExecuteDownloadTaskAsync:
         assert "not found (404)" in stats.errors[0]
 
 
-class TestRunDownloadAsync:
+class TestRunDownload:
     """Test async download runner."""
 
     @pytest.mark.asyncio
@@ -271,7 +273,7 @@ class TestRunDownloadAsync:
         )
 
         # This will fail on actual downloads but should create directory
-        await run_download_async(options)
+        await run_download(options)
 
         assert output_path.exists()
         assert output_path.is_dir()
@@ -298,7 +300,7 @@ class TestRunDownloadAsync:
             verbose=False,
         )
 
-        exit_code = await run_download_async(options)
+        exit_code = await run_download(options)
         # Empty summary file is treated as an error
         assert exit_code == 1
 

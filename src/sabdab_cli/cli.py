@@ -7,7 +7,6 @@ import typer
 
 from sabdab_cli import __version__
 from sabdab_cli.downloader import DownloadOptions, run_download
-from sabdab_cli.downloader.runner import run_download_async
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -93,14 +92,7 @@ def download(
         verbose=verbose,
     )
 
-    # Use async path when threads are specified (explicit or implicit concurrency)
-    # Use sync path only when threads=1 is explicitly set
-    if threads == 1:
-        typer.echo("Starting SAbDab download in synchronous mode...")
-        exit_code = run_download(options)
-    else:
-        typer.echo("Starting SAbDab download with concurrent connections...")
-        exit_code = asyncio.run(run_download_async(options))
+    exit_code = asyncio.run(run_download(options))
 
     raise typer.Exit(code=exit_code)
 
